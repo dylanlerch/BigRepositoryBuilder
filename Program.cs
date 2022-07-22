@@ -33,12 +33,22 @@ namespace BigRepositoryBuilder
             actions.Insert(0, new CommitAction(repository)); // Always have one commit at the start in case an action needs it
             actions.Add(new CommitAction(repository)); // Always commit at the end in case there are uncommited files
 
-            foreach (var action in actions)
+
+            int lastFullPercent = 0;
+            for (int i = 0; i < actions.Count; i++)
             {
+                int currentPercent = i * 100 / actions.Count;
+                if (currentPercent > lastFullPercent)
+                {
+                    lastFullPercent = currentPercent;
+                    Console.WriteLine($"{currentPercent}%");
+                }
+
+                var action = actions[i];
                 await action.Execute();
             }
 
-            Console.WriteLine($"Done. Repository genereated at {outputPath}");
+            Console.WriteLine($"Done. Repository generated at {outputPath}");
             Console.WriteLine($"Add a remote and push it all with `git push <remote-name> --all && git push <remote-name> --tags`");
         }
 
