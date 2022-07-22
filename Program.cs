@@ -16,11 +16,10 @@ namespace BigRepositoryBuilder
             Directory.CreateDirectory(outputPath);
 
             var configuration = await ReadConfiguration(configurationFilePath);
+            WriteRepositorySummary(configuration);
+
             using var repository = CreateRepository(outputPath);
             random = new Random(configuration.Seed);
-
-
-
 
             var actions = new List<IRepositoryBuilderAction>();
 
@@ -47,6 +46,14 @@ namespace BigRepositoryBuilder
         {
             var repositoryPath = Repository.Init(repositoryWorkingDirectory);
             return new Repository(repositoryPath);
+        }
+
+        static void WriteRepositorySummary(RepositoryConfiguration configuration)
+        {
+            var totalSize = configuration.Files.Sum(f => f.Count * f.Size);
+            var totalFiles = configuration.Files.Sum(f => f.Count);
+
+            Console.WriteLine($"Generating {totalSize}KB ({totalSize / 1024}MB) repository with {totalFiles} files, {configuration.Commits} commits, {configuration.Branches} branches, and {configuration.Tags} tags (seed: {configuration.Seed}).");
         }
 
         static List<CreateFileAction> GenerateCreateFileActions(List<RepositoryConfigurationFile> fileConfigurations, string outputPath)
