@@ -1,0 +1,24 @@
+{
+    "commits": 500,
+    "branches": 50,
+    "tags": 50,
+    "files": [
+        {
+            "size": 10240,
+            "count": 1,
+            "binary": true
+        },
+        {
+            "size": 2560,
+            "count": 4
+        },
+        {
+            "size": 128,
+            "count": 100
+        },
+        {
+            "size": 25,
+            "count": 600
+        }
+    ]
+}

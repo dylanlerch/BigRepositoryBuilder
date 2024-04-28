@@ -13,5 +13,6 @@ namespace BigRepositoryBuilder
     {
         public int Size { get; set; }
         public int Count { get; set; }
+        public bool Binary { get; set; }
     }
 }

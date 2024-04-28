@@ -1,21 +1,16 @@
 {
-    "commits": 15000,
-    "branches": 1500,
-    "tags": 60000,
+    "commits": 5000,
+    "branches": 750,
+    "tags": 5000,
     "files": [
         {
-            "size": 52100,
-            "count": 2,
-            "binary": true
-        },
-        {
             "size": 10240,
-            "count": 15,
+            "count": 5,
             "binary": true
         },
         {
             "size": 2560,
-            "count": 10
+            "count": 5
         },
         {
             "size": 1024,
@@ -26,12 +21,12 @@
             "count": 800
         },
         {
-            "size": 50,
-            "count": 3000
+            "size": 15,
+            "count": 1500
         },
         {
-            "size": 10,
-            "count": 11000
+            "size": 8,
+            "count": 1540
         }
     ]
 }

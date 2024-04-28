@@ -12,7 +12,7 @@ namespace BigRepositoryBuilder
         {
             // Arguments and defaults
             var configurationFilePath = args[1];
-            var outputPath = args.Length >= 3 ? args[2] : Path.Join(Environment.CurrentDirectory, "generated-repository", Guid.NewGuid().ToString());
+            var outputPath = args.Length >= 3 ? args[2] : Path.Join(Environment.CurrentDirectory, "generated-repository", $"{Guid.NewGuid()}.git");
             Directory.CreateDirectory(outputPath);
 
             var configuration = await ReadConfiguration(configurationFilePath);
@@ -22,17 +22,17 @@ namespace BigRepositoryBuilder
             random = new Random(configuration.Seed);
 
             var actions = new List<IRepositoryBuilderAction>();
+            var fileBuffer = new List<(bool Binary, string Name, byte[] Content)>();
 
-            actions.AddRange(GenerateCreateFileActions(configuration.Files, outputPath));
-            Repeat(configuration.Commits, () => actions.Add(new CommitAction(repository)));
+            actions.AddRange(GenerateCreateFileActions(configuration.Files, fileBuffer));
+            Repeat(configuration.Commits, () => actions.Add(new CommitAction(repository, fileBuffer)));
             Repeat(configuration.Branches, () => actions.Add(new CreateBranchAction(random, repository)));
             Repeat(configuration.Tags, () => actions.Add(new CreateTagAction(random, repository)));
 
             Shuffle(actions);
 
-            actions.Insert(0, new CommitAction(repository)); // Always have one commit at the start in case an action needs it
-            actions.Add(new CommitAction(repository)); // Always commit at the end in case there are uncommited files
-
+            actions.Insert(0, new CommitAction(repository, fileBuffer)); // Always have one commit at the start in case an action needs it
+            actions.Add(new CommitAction(repository, fileBuffer)); // Always commit at the end in case there are uncommited files
 
             int lastFullPercent = 0;
             for (int i = 0; i < actions.Count; i++)
@@ -45,7 +45,7 @@ namespace BigRepositoryBuilder
                 }
 
                 var action = actions[i];
-                await action.Execute();
+                action.Execute();
             }
 
             Console.WriteLine($"Done. Repository generated at {outputPath}");
@@ -54,7 +54,7 @@ namespace BigRepositoryBuilder
 
         static Repository CreateRepository(string repositoryWorkingDirectory)
         {
-            var repositoryPath = Repository.Init(repositoryWorkingDirectory);
+            var repositoryPath = Repository.Init(repositoryWorkingDirectory, true);
             return new Repository(repositoryPath);
         }
 
@@ -63,18 +63,25 @@ namespace BigRepositoryBuilder
             var totalSize = configuration.Files.Sum(f => f.Count * f.Size);
             var totalFiles = configuration.Files.Sum(f => f.Count);
 
-            Console.WriteLine($"Generating {totalSize}KB ({totalSize / 1024}MB) repository with {totalFiles} files, {configuration.Commits} commits, {configuration.Branches} branches, and {configuration.Tags} tags (seed: {configuration.Seed}).");
+            Console.WriteLine($"Generating ~{totalSize}KB (~{totalSize / 1024}MB) repository with {totalFiles} files, {configuration.Commits} commits, {configuration.Branches} branches, and {configuration.Tags} tags (seed: {configuration.Seed}).");
         }
 
-        static List<CreateFileAction> GenerateCreateFileActions(List<RepositoryConfigurationFile> fileConfigurations, string outputPath)
+        static List<IRepositoryBuilderAction> GenerateCreateFileActions(List<RepositoryConfigurationFile> fileConfigurations, List<(bool Binary, string Name, byte[] Content)> fileBuffer)
         {
-            var createFileActions = new List<CreateFileAction>();
+            var createFileActions = new List<IRepositoryBuilderAction>();
 
             foreach (var fileConfiguration in fileConfigurations)
             {
                 for (int i = 0; i < fileConfiguration.Count; i++)
                 {
-                    createFileActions.Add(new CreateFileAction(random, fileConfiguration.Size, outputPath));
+                    if (fileConfiguration.Binary)
+                    {
+                        createFileActions.Add(new CreateBinaryFileAction(random, fileConfiguration.Size, fileBuffer));
+                    }
+                    else
+                    {
+                        createFileActions.Add(new CreateFileAction(random, fileConfiguration.Size, fileBuffer));
+                    }
                 }
             }
 

@@ -13,13 +13,11 @@ namespace BigRepositoryBuilder.Actions
             this.repository = repository;
         }
 
-        public Task Execute()
+        public void Execute()
         {
             var branchName = $"{random.GenerateName()}-branch";
             var commit = repository.Head.Tip;
             repository.Branches.Add(branchName, commit);
-
-            return Task.CompletedTask;
         }
     }
 }

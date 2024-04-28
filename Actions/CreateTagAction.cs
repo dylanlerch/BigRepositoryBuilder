@@ -13,13 +13,11 @@ namespace BigRepositoryBuilder.Actions
             this.repository = repository;
         }
 
-        public Task Execute()
+        public void Execute()
         {
             var tagName = $"{random.GenerateName()}-tag";
             var commit = repository.Head.Tip;
             repository.Tags.Add(tagName, commit);
-
-            return Task.CompletedTask;
         }
     }
 }
